@@ -1,0 +1,47 @@
+
+preserfs
+========
+
+Preserfs is a FUSE filesystem that preserves metadata on top of
+a less capable filesystem.
+
+Development is still at the very, very early beginnings.
+
+
+Rationale
+---------
+
+I'm using an online service for data storage and being privacy-
+conscious I encrypt the personal files I put there. Specifically,
+I'm using eCryptfs for the encryption which has the side-effect
+of creating files with very long names.
+
+Unfortunately, the service I'm using imposes restrictions on
+filename and path lengths that are far too narrow for my files.
+On top of that, all the metadata, i.e., owner, group, permissions,
+modification time, are lost.
+
+Preserfs is intended to be used in two ways or directions.
+
+In the reverse direction, it maps a fully-capable filesystem to
+a restricted view with shortened names and a per-directory, virtual
+file (.preserfs-metadata) containing the unspoiled metadata for
+each file in that directory. This view is meant to be suitable for
+backups to a service that may not keep metadata intact.
+
+In the forward direction, preserfs creates an enhanced view with
+original names and metadata on top of a (copy of a) restricted view.
+
+
+Roadmap
+-------
+
+0. Get to grips with C++ (again).
+1. Metadata: extract, save, restore, apply.
+2. Directory tree: map filenames and paths in both directions, lookup metadata.
+3. Reverse direction FUSE read-only filesystem.
+4. Forward direction FUSE read-only filesystem.
+5. Limit reified directory tree size (LRU caching).
+6. Multithreading.
+7. Algorithms for filename shortening: MD5, SHA1, short name + number.
+
