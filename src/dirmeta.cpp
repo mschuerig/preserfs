@@ -10,13 +10,15 @@ main(
     char* argv[]
 ) {
 //    DirectoryMetadata::Ptr md = DirectoryMetadata::fromFilesystem(".");
-    DirectoryMetadata::Ptr md = DirectoryMetadata::fromMetadataFile(".", argc > 1 ? argv[1] : 0);
+    DirectoryMetadata::Ptr md = argc > 1 ?
+        DirectoryMetadata::fromMetadataFile(".", argv[1]) :
+        DirectoryMetadata::fromMetadataFile(".");
 
 //    for (DirectoryMetadata::EntryIter it = md->cbegin(); it != md->cend(); ++it) {
 //        cout << it->shortName << "\t" << it->longName << "\t" << it->uid << "\t" << oct << it->mode << dec << endl;
 //    }
     
-    md->write();
+    md->write(cout);
 
     return 0;
 }

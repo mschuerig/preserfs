@@ -5,7 +5,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
-#include <memory>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/filesystem.hpp>
@@ -23,10 +22,11 @@ const string DirectoryMetadata::metadataFilename = ".preserfs";
 
 DirectoryMetadata::Ptr
 DirectoryMetadata::fromFilesystem(
-    const string& directoryPath
+    const string& directoryPath,
+    const boost::shared_ptr<Etc> etc
 ) {
     fs::path path(directoryPath);
-    Ptr dm(new DirectoryMetadata);
+    Ptr dm(new DirectoryMetadata(etc));
     
     for ( fs::directory_iterator it(path); it != fs::directory_iterator(); ++it ) {
         const string name = it->path().filename().string();
@@ -42,7 +42,7 @@ DirectoryMetadata::fromFilesystem(
             uid         : st.st_uid,
             gid         : st.st_gid,
             mode        : st.st_mode,
-            mtime       : st.st_mtime
+            mtime       : st.st_mtime,
         };
 
         dm->entries_.push_back(entry);
@@ -54,12 +54,13 @@ DirectoryMetadata::fromFilesystem(
 DirectoryMetadata::Ptr
 DirectoryMetadata::fromMetadataFile(
     const string& directoryPath,
+    const EtcPtr etc,
     const string& filename
 ) {
     fs::path path(directoryPath);
     path /= filename;
-    Ptr dm(new DirectoryMetadata);
-    
+    Ptr dm(new DirectoryMetadata(etc));
+
     ifstream ifs(path.string().c_str());
 
     boost::archive::xml_iarchive ia(ifs);
@@ -68,16 +69,39 @@ DirectoryMetadata::fromMetadataFile(
     return dm;
 }
 
-
-DirectoryMetadata::DirectoryMetadata()
-{
+DirectoryMetadata::Ptr
+DirectoryMetadata::fromMetadataFile(
+    const string& directoryPath,
+    const string& filename
+) {
+    EtcPtr etc(new Etc);
+    return fromMetadataFile(directoryPath, etc, filename);
 }
 
+DirectoryMetadata::Ptr
+DirectoryMetadata::fromMetadataFile(
+    const string& directoryPath
+) {
+    return fromMetadataFile(directoryPath, metadataFilename);
+}
+
+DirectoryMetadata::DirectoryMetadata(boost::shared_ptr<Etc> etc)
+    : etc_(etc)
+{
+}
 
 void
 DirectoryMetadata::write() const
 {
-    boost::archive::xml_oarchive oa(cout);
+    fs::path path(metadataFilename);
+    ofstream os(path.string().c_str());
+    write(os);
+}
+
+void
+DirectoryMetadata::write(ostream& os) const
+{
+    boost::archive::xml_oarchive oa(os);
     oa << ser::make_nvp("entries", entries_);
 }
 
@@ -100,7 +124,8 @@ void save(
     const DirectoryMetadata::Entry& e,
     const unsigned int /*version*/
 ) {
-    Etc etc;
+    Etc etc; // TODO how to get hold of the instance in DirectoryMetadata from here?
+
     ar & ser::make_nvp("longname",  e.longName);
     ar & ser::make_nvp("shortname", e.shortName);
     ar & ser::make_nvp("owner",     etc.lookupUsername(e.uid));
@@ -115,7 +140,8 @@ void load(
     DirectoryMetadata::Entry& e,
     const unsigned int /*version*/
 ) {
-    Etc etc;
+    Etc etc; // TODO how to get hold of the instance in DirectoryMetadata from here?
+    
     ar & ser::make_nvp("longname",  e.longName);
     ar & ser::make_nvp("shortname", e.shortName);
 
