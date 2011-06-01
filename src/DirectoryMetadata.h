@@ -5,8 +5,9 @@
 #include <ostream>
 #include <string>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/shared_ptr.hpp>
 
 class Etc;
 
@@ -15,6 +16,11 @@ public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
     typedef boost::shared_ptr<Etc> EtcPtr;
 
+    struct NameShortener {
+        virtual std::string operator()(const std::string& longName) = 0;
+        virtual ~NameShortener() {};
+    };
+    
     struct Entry {
         std::string longName;
         std::string shortName;
@@ -28,13 +34,18 @@ public:
     
     static const std::string metadataFilename;
     
+    DirectoryMetadata(const EtcPtr etc);
+        // The ctor ought to be private, but that won't work with make_shared
+
     static Ptr fromFilesystem(
         const std::string& directoryPath,
+        NameShortener& shortener,
         const EtcPtr etc
     );
 
     static Ptr fromFilesystem(
-        const std::string& directoryPath
+        const std::string& directoryPath,
+        NameShortener& shortener
     );
 
     static Ptr fromMetadataFile(
@@ -62,8 +73,6 @@ public:
     }
     
 private:
-    DirectoryMetadata(const boost::shared_ptr<Etc> etc);
-
     std::vector<Entry> entries_;
     const boost::shared_ptr<Etc> etc_;
 };
