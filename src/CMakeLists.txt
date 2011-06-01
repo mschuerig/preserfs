@@ -16,8 +16,19 @@ add_executable(
     DirectoryMetadata.cpp
     Etc.cpp
 )
-
 target_link_libraries (
     dirmeta
     ${Boost_LIBRARIES}
 )
+
+add_executable(
+    transpath
+    transpath.cpp
+    DirectoryMetadata.cpp
+    Etc.cpp
+)
+target_link_libraries (
+    transpath
+    ${Boost_LIBRARIES}
+)
+
