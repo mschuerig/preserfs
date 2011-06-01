@@ -3,6 +3,7 @@
 #define IDENTITY_SHORTENER_H_INCLUDED_
 
 #include "NameShortener.h"
+#include <string>
 
 class IdentityShortener : public NameShortener
 {

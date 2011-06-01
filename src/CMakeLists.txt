@@ -1,5 +1,6 @@
 
 find_package( Boost 1.46 COMPONENTS system filesystem serialization )
+find_package( openssl )
 
 link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
@@ -15,10 +16,12 @@ add_executable(
     dirmeta.cpp
     DirectoryMetadata.cpp
     Etc.cpp
+    MD5Shortener.cpp
 )
 target_link_libraries (
     dirmeta
     ${Boost_LIBRARIES}
+    crypto
 )
 
 add_executable(
@@ -26,9 +29,11 @@ add_executable(
     transpath.cpp
     DirectoryMetadata.cpp
     Etc.cpp
+    MD5Shortener.cpp
 )
 target_link_libraries (
     transpath
     ${Boost_LIBRARIES}
+    crypto
 )
 
