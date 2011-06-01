@@ -2,6 +2,8 @@
 #ifndef DIRECTORY_METADATA_H_INCLUDED_
 #define DIRECTORY_METADATA_H_INCLUDED_
 
+#include "NameShortener.h"
+
 #include <ostream>
 #include <string>
 #include <vector>
@@ -16,11 +18,6 @@ public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
     typedef boost::shared_ptr<Etc> EtcPtr;
 
-    struct NameShortener {
-        virtual std::string operator()(const std::string& longName) = 0;
-        virtual ~NameShortener() {};
-    };
-    
     struct Entry {
         std::string longName;
         std::string shortName;

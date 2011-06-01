@@ -1,18 +1,9 @@
 
-#include "DirectoryMetadata.h"
-#include <exception>
 #include <iostream>
+#include "DirectoryMetadata.h"
+#include "IdentityShortener.h"
 
 using namespace std;
-using namespace boost;
-
-class IdentityShortener : public DirectoryMetadata::NameShortener
-{
-public:
-    virtual string operator()(const string& longName) {
-        return std::string(longName, 0, 50);
-    }
-};
 
 int
 main(
