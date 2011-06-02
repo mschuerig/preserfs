@@ -14,6 +14,9 @@
 class Etc;
 
 class DirectoryMetadata : public boost::noncopyable {
+    // TODO What traits does this class have to expose
+    // so that it works, e.g., with BOOST_FOREACH?
+    
 public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
     typedef boost::shared_ptr<Etc> EtcPtr;

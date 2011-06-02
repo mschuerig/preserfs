@@ -37,16 +37,18 @@ DirectoryMetadata::fromFilesystem(
     vector<Entry>& entries(dm->entries_);
     
     for ( fs::directory_iterator it(path), end; it != end; ++it ) {
-        const string name = it->path().filename().string();
+        const string entryPath( it->path().string() );
 
         struct stat st;
-        if ( lstat(name.c_str(), &st) < 0 ) {
-            util::throw_errno("lstat", it->path());
+        if ( lstat(entryPath.c_str(), &st) < 0 ) {
+            util::throw_errno("lstat", entryPath);
         }
+
+        const string entryName( it->path().filename().string() );
         
         Entry entry = {
-            longName    : name,
-            shortName   : shortener(name),
+            longName    : entryName,
+            shortName   : shortener(entryName),
             uid         : st.st_uid,
             gid         : st.st_gid,
             mode        : st.st_mode,

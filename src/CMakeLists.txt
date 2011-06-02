@@ -11,12 +11,18 @@ add_definitions(
 )
 # -Weffc++
 
+set(
+    Shorteners
+    MD5Shortener.cpp
+    TruncatingShortener.cpp
+)    
+
 add_executable(
     dirmeta
     dirmeta.cpp
     DirectoryMetadata.cpp
     Etc.cpp
-    MD5Shortener.cpp
+    ${Shorteners}
 )
 target_link_libraries (
     dirmeta
@@ -29,7 +35,7 @@ add_executable(
     transpath.cpp
     DirectoryMetadata.cpp
     Etc.cpp
-    MD5Shortener.cpp
+    ${Shorteners}
 )
 target_link_libraries (
     transpath
