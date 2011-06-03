@@ -1,6 +1,7 @@
 
 #include "DirectoryMetadata.h"
 #include "TruncatingShortener.h"
+#include "util.h"
 #include <map>
 #include <utility>
 #include <boost/filesystem.hpp>
@@ -10,6 +11,7 @@
 using namespace std;
 namespace fs = boost::filesystem;
 #define foreach BOOST_FOREACH
+
 
 int
 main( int argc, char* argv[] )
@@ -23,7 +25,6 @@ main( int argc, char* argv[] )
     boost::scoped_ptr<NameShortener> shortener( new TruncatingShortener(5) );
     DirectoryMetadata::Ptr dm;
 
-
     fs::path prefixPath;
     
     if ( path.is_absolute() ) {
@@ -36,18 +37,14 @@ main( int argc, char* argv[] )
     dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
 
     foreach( fs::path part, path ) {
-        map<string, DirectoryMetadata::Entry> entryMap;
-
-        // TODO use copy algo
-        foreach( const DirectoryMetadata::Entry& e, make_pair(dm->cbegin(), dm->cend()) ) {
-           entryMap[e.longName] = e;
-        }
-
+        map<string, DirectoryMetadata::Entry> entryMap =
+            util::index_by(*dm, &DirectoryMetadata::Entry::longName);
+        
         resultPath /= entryMap[part.string()].shortName;
         
         prefixPath /= part;
         if ( fs::is_directory(prefixPath) ) {
-            shortener.reset( new TruncatingShortener(5) );
+            shortener.reset( new TruncatingShortener(5) ); // TODO I don't want to remember the args
             dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
         } else {
             break;
@@ -55,7 +52,7 @@ main( int argc, char* argv[] )
     }
 
     cout << path << " -> " << resultPath << endl;
-    
+
     return 0;
 }
  

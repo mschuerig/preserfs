@@ -29,9 +29,9 @@ public:
         mode_t      mode;
         time_t      mtime;
     };
-    typedef std::vector<Entry>::const_iterator EntryIter;
-
-    
+    typedef Entry value_type;
+    typedef std::vector<Entry>::const_iterator const_iterator;
+   
     static const std::string metadataFilename;
     
     DirectoryMetadata(const EtcPtr etc);
@@ -64,11 +64,11 @@ public:
     void write() const;
     void write(std::ostream& os) const;
 
-    EntryIter cbegin() const {
+    const_iterator begin() const {
         return entries_.begin();
     }
 
-    EntryIter cend() const {
+    const_iterator end() const {
         return entries_.end();
     }
     

@@ -8,7 +8,7 @@ using namespace std;
 TruncatingShortener::TruncatingShortener(size_t maxNameLength)
     : maxNameLength_(maxNameLength)
 {
-    // ensure minimum length
+    // TODO ensure minimum length
 }
 
 
@@ -24,6 +24,7 @@ TruncatingShortener::operator()(const std::string& longName) {
     
     for ( int i = 1; ; ++i ) {
         const string counter(boost::lexical_cast<string>(i));
+        assert( counter.size() <= maxNameLength_ ); // TODO throw something sensible
         prefix.resize(maxNameLength_ - counter.size());
         shortName = prefix + counter;
 

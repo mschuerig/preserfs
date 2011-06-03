@@ -2,7 +2,8 @@
 #ifndef UTIL_H_INCLUDED_
 #define UTIL_H_INCLUDED_
 
-#include <errno.h>
+#include <cerrno>
+#include <map>
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
@@ -25,6 +26,18 @@ throw_errno(const std::string& msg, int err = errno) {
     );
 }
 
+template<typename T, typename R>
+std::map<R, typename T::value_type>
+index_by(const T& t, R T::value_type::*ptr_to_mem)
+{
+    std::map<R, typename T::value_type> idx;
+    for ( typename T::const_iterator i = t.begin(), end = t.end();
+          i != end;
+          ++i ) {
+        idx[((*i).*ptr_to_mem)] = *i;
+    }
+    return  idx;
+}
 
 } // namespace util
 
