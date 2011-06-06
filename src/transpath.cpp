@@ -22,8 +22,6 @@ main( int argc, char* argv[] )
     }
     
     const fs::path path(argv[1]);
-    boost::scoped_ptr<NameShortener> shortener( new TruncatingShortener(5) );
-    DirectoryMetadata::Ptr dm;
 
     fs::path prefixPath;
     
@@ -34,7 +32,9 @@ main( int argc, char* argv[] )
     }
 
     fs::path resultPath;
-    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
+    boost::scoped_ptr<NameShortener> shortener( new TruncatingShortener(5) );
+    DirectoryMetadata::Ptr dm =
+        DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
 
     foreach( fs::path part, path ) {
         map<string, DirectoryMetadata::Entry> entryMap =

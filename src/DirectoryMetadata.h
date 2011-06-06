@@ -14,9 +14,6 @@
 class Etc;
 
 class DirectoryMetadata : public boost::noncopyable {
-    // TODO What traits does this class have to expose
-    // so that it works, e.g., with BOOST_FOREACH?
-    
 public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
     typedef boost::shared_ptr<Etc> EtcPtr;
@@ -34,9 +31,6 @@ public:
    
     static const std::string metadataFilename;
     
-    DirectoryMetadata(const EtcPtr etc);
-        // The ctor ought to be private, but that won't work with make_shared
-
     static Ptr fromFilesystem(
         const std::string& directoryPath,
         NameShortener& shortener,
@@ -73,6 +67,9 @@ public:
     }
     
 private:
+    DirectoryMetadata(const EtcPtr etc);
+    friend Ptr boost::make_shared<DirectoryMetadata, EtcPtr>(const EtcPtr&);
+    
     std::vector<Entry> entries_;
     const boost::shared_ptr<Etc> etc_;
 };
