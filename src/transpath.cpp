@@ -12,46 +12,56 @@ using namespace std;
 namespace fs = boost::filesystem;
 #define foreach BOOST_FOREACH
 
+typedef map<string, DirectoryMetadata::Entry> EntryMap;
+
+string
+translate( const string& longPath, NameShortener& shortener) {
+    const fs::path path(longPath);
+
+    fs::path prefixPath;
+
+    if ( path.is_absolute() ) {
+	prefixPath = "/";
+    } else {
+	prefixPath = ".";
+    }
+
+    fs::path resultPath;
+    DirectoryMetadata::Ptr dm;
+
+    foreach( fs::path part, path ) {
+	if ( fs::is_directory(prefixPath) ) {
+	    shortener.reset();
+	    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
+	} else {
+	    throw "Not a directory"; // ### FIXME
+	}
+
+	EntryMap entryMap = util::index_by(*dm, &DirectoryMetadata::Entry::longName);
+
+	EntryMap::const_iterator ep( entryMap.find(part.string()) );
+	if ( ep != entryMap.end() ) {
+	    resultPath /= ep->second.shortName;
+	} else {
+	    throw "No such file or directory."; // ### FIXME
+	}
+
+	prefixPath /= part;
+    }
+    return resultPath.string();
+}
+
 
 int
 main( int argc, char* argv[] )
 {
-    if ( argc < 2 ) {
-        cerr << "Usage: transpath path" << endl;
-        return -1;
-    }
+    TruncatingShortener shortener(5);
     
-    const fs::path path(argv[1]);
-
-    fs::path prefixPath;
-    
-    if ( path.is_absolute() ) {
-        prefixPath = "/";
-    } else {
-        prefixPath = ".";
+    for ( int i = 1; i < argc; ++i ) {
+	const string longPath(argv[i]);
+	const string shortPath = translate(longPath, shortener);
+	cout << longPath << " -> " << shortPath << endl;
     }
-
-    fs::path resultPath;
-    boost::scoped_ptr<NameShortener> shortener( new TruncatingShortener(5) );
-    DirectoryMetadata::Ptr dm =
-        DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
-
-    foreach( fs::path part, path ) {
-        map<string, DirectoryMetadata::Entry> entryMap =
-            util::index_by(*dm, &DirectoryMetadata::Entry::longName);
-        
-        resultPath /= entryMap[part.string()].shortName;
-        
-        prefixPath /= part;
-        if ( fs::is_directory(prefixPath) ) {
-            shortener.reset( new TruncatingShortener(5) ); // TODO I don't want to remember the args
-            dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener);
-        } else {
-            break;
-        }
-    }
-
-    cout << path << " -> " << resultPath << endl;
 
     return 0;
 }

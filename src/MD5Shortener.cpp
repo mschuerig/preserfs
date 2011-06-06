@@ -8,7 +8,7 @@
 using namespace std;
 
 string
-MD5Shortener::operator()(const std::string& longName) {
+MD5Shortener::shorten(const std::string& longName) {
     unsigned char* hash = MD5(reinterpret_cast<const unsigned char*>(longName.c_str()),
                               longName.size(), NULL);
     

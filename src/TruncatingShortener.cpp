@@ -13,8 +13,8 @@ TruncatingShortener::TruncatingShortener(size_t maxNameLength)
 
 
 string
-TruncatingShortener::operator()(const std::string& longName) {
-    if ( longName.size() < maxNameLength_ ) {
+TruncatingShortener::shorten(const std::string& longName) {
+    if ( longName.size() <= maxNameLength_ ) {
         shortNames_.insert(longName);
         return longName;
     }
@@ -36,3 +36,7 @@ TruncatingShortener::operator()(const std::string& longName) {
     assert( !"Error in TruncatingShortener" );
 }
  
+void
+TruncatingShortener::reset() {
+    shortNames_.clear();
+}

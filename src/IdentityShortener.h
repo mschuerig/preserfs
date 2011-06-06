@@ -7,8 +7,8 @@
 
 class IdentityShortener : public NameShortener
 {
-public:
-    virtual std::string operator()(const std::string& longName) {
+private:
+    virtual std::string shorten(const std::string& longName) {
         return longName;
     }
 };

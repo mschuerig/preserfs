@@ -5,8 +5,9 @@
 #include "NameShortener.h"
 #include <string>
 
-struct MD5Shortener : public NameShortener {
-    virtual std::string operator()(const std::string& longName);
+class MD5Shortener : public NameShortener {
+private:
+    virtual std::string shorten(const std::string& longName);
 };
 
 #endif // MD5_SHORTENER_INCLUDED_H_
