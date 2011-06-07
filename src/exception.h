@@ -1,16 +1,15 @@
 
-#ifndef UTIL_H_INCLUDED_
-#define UTIL_H_INCLUDED_
+#ifndef EXCEPTION_H_INCLUDED_
+#define EXCEPTION_H_INCLUDED_
 
 #include <cerrno>
 #include <cstring>
-#include <map>
 #include <string>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 
-namespace util
+namespace exception
 {
 
 void inline
@@ -59,6 +58,6 @@ private:
     A2 a2_;
 };
 
-} // namespace util
+} // namespace exception
 
-#endif // UTIL_H_INCLUDED_
+#endif // EXCEPTION_H_INCLUDED_

@@ -11,12 +11,13 @@
 #include <boost/serialization/split_free.hpp>
 #include <boost/serialization/vector.hpp>
 #include "Etc.h"
-#include "util.h"
+#include "exception.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
 namespace ser = boost::serialization;
 namespace sys = boost::system;
+namespace ex = exception;
 
 const string DirectoryMetadata::metadataFilename = ".preserfs";
 
@@ -41,7 +42,7 @@ DirectoryMetadata::fromFilesystem(
 
         struct stat st;
         if ( lstat(entryPath.c_str(), &st) < 0 ) {
-            util::throw_errno("lstat", entryPath);
+            ex::throw_errno("lstat", entryPath);
         }
 
         const string entryName( it->path().filename().string() );

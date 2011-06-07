@@ -6,11 +6,11 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <boost/system/system_error.hpp>
-#include "util.h"
+#include "exception.h"
 
 using namespace std;
 namespace sys = boost::system;
-
+namespace ex = exception;
 
 const string
 Etc::lookupUsername(uid_t uid) const
@@ -18,7 +18,7 @@ Etc::lookupUsername(uid_t uid) const
     errno = 0;
     struct passwd* pwd = getpwuid(uid);
     if (!pwd && errno) {
-        util::throw_errno("getpwuid");
+        ex::throw_errno("getpwuid");
     }
     return string(pwd->pw_name);
 }
@@ -28,7 +28,7 @@ Etc::lookupGroupname(gid_t gid) const {
     errno = 0;
     struct group* gr = getgrgid(gid);
     if (!gr && errno) {
-        util::throw_errno("getgrgid");
+        ex::throw_errno("getgrgid");
     }
     return string(gr->gr_name);
 }
@@ -38,7 +38,7 @@ Etc::lookupUserId(const string& user) const {
     errno = 0;
     struct passwd* pwd = getpwnam(user.c_str());
     if (!pwd && errno) {
-        util::throw_errno("getpwnam");
+        ex::throw_errno("getpwnam");
     }
     return pwd->pw_uid;
 }
@@ -48,7 +48,7 @@ Etc::lookupGroupId(const string& group) const {
     errno = 0;
     struct group* gr = getgrnam(group.c_str());
     if (!gr && errno) {
-        util::throw_errno("getgrnam");
+        ex::throw_errno("getgrnam");
     }
     return gr->gr_gid;
 }

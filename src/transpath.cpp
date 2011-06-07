@@ -2,7 +2,7 @@
 #include "DirectoryMetadata.h"
 #include "TruncatingShortener.h"
 #include "algorithm.h"
-#include "util.h"
+#include "exception.h"
 #include <map>
 #include <utility>
 #include <boost/filesystem.hpp>
@@ -11,6 +11,7 @@
 
 using namespace std;
 namespace fs = boost::filesystem;
+using namespace exception;
 #define foreach BOOST_FOREACH
 
 typedef map<string, DirectoryMetadata::Entry> EntryMap;
@@ -35,7 +36,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	    shortener.reset();
 	    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
 	} else {
-	    util::throw_errno("Not a directory", prefixPath, ENOTDIR);
+	    throw_errno("Not a directory", prefixPath, ENOTDIR);
 	}
 
 	EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
@@ -44,7 +45,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	if ( ep != entryMap.end() ) {
 	    resultPath /= ep->second.shortName;
 	} else {
-	    util::throw_errno("No such file or directory", part, ENOENT);
+	    throw_errno("No such file or directory", part, ENOENT);
 	}
 
 	prefixPath /= part;
@@ -61,7 +62,7 @@ main( int argc, char* argv[] )
     for ( int i = 1; i < argc; ++i ) {
 	const string longPath(argv[i]);
 	
-	util::CatchAll<string, const string&, NameShortener&> catcher(
+	CatchAll<string, const string&, NameShortener&> catcher(
 	    &translate, longPath, shortener);
 	if ( int err = catcher.call() ) {
 	    return err;
