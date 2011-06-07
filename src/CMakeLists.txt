@@ -36,6 +36,7 @@ add_executable(
     DirectoryMetadata.cpp
     Etc.cpp
     ${Shorteners}
+    exception.cpp
 )
 target_link_libraries (
     transpath

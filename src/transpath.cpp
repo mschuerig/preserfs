@@ -36,7 +36,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	    shortener.reset();
 	    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
 	} else {
-	    throw_errno("Not a directory", prefixPath, ENOTDIR);
+	    throw_errno(prefixPath, ENOTDIR);
 	}
 
 	EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
@@ -45,7 +45,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	if ( ep != entryMap.end() ) {
 	    resultPath /= ep->second.shortName;
 	} else {
-	    throw_errno("No such file or directory", part, ENOENT);
+	    throw_errno(part, ENOENT);
 	}
 
 	prefixPath /= part;
