@@ -1,6 +1,7 @@
 
 #include "DirectoryMetadata.h"
 #include "TruncatingShortener.h"
+#include "algorithm.h"
 #include "util.h"
 #include <map>
 #include <utility>
@@ -37,7 +38,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	    util::throw_errno("Not a directory", prefixPath, ENOTDIR);
 	}
 
-	EntryMap entryMap = util::index_by(*dm, &DirectoryMetadata::Entry::longName);
+	EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
 
 	EntryMap::const_iterator ep( entryMap.find(part.string()) );
 	if ( ep != entryMap.end() ) {
