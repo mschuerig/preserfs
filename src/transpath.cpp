@@ -34,7 +34,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	    shortener.reset();
 	    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
 	} else {
-	    throw "Not a directory"; // ### FIXME
+	    util::throw_errno("Not a directory", prefixPath, ENOTDIR);
 	}
 
 	EntryMap entryMap = util::index_by(*dm, &DirectoryMetadata::Entry::longName);
@@ -43,7 +43,7 @@ translate( const string& longPath, NameShortener& shortener) {
 	if ( ep != entryMap.end() ) {
 	    resultPath /= ep->second.shortName;
 	} else {
-	    throw "No such file or directory."; // ### FIXME
+	    util::throw_errno("No such file or directory", part, ENOENT);
 	}
 
 	prefixPath /= part;
@@ -59,8 +59,14 @@ main( int argc, char* argv[] )
     
     for ( int i = 1; i < argc; ++i ) {
 	const string longPath(argv[i]);
-	const string shortPath = translate(longPath, shortener);
-	cout << longPath << " -> " << shortPath << endl;
+	
+	util::CatchAll<string, const string&, NameShortener&> catcher(
+	    &translate, longPath, shortener);
+	if ( int err = catcher.call() ) {
+	    return err;
+	}
+
+	cout << longPath << " -> " << catcher.result() << endl;
     }
 
     return 0;

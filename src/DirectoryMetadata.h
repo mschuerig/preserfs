@@ -27,7 +27,7 @@ public:
         time_t      mtime;
     };
     typedef Entry value_type;
-    typedef std::vector<Entry>::const_iterator const_iterator;
+    typedef std::vector<Entry>::const_iterator const_iterator; // TODO use a dequeue?
    
     static const std::string metadataFilename;
     
