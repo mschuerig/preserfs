@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <string>
 #include <boost/filesystem.hpp>
+#include <boost/noncopyable.hpp>
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 
@@ -42,7 +43,7 @@ throw_errno(const std::string& msg, int err = errno) {
     );
 }
 
-class CatchAllBase {
+class CatchAllBase : public boost::noncopyable {
 protected:
     static int reportError(const boost::system::system_error& ex);
 };
