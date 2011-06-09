@@ -15,8 +15,8 @@ main( int argc, char* argv[] ) {
             DirectoryMetadata::fromMetadataFile(".", argv[2]) :
             DirectoryMetadata::fromMetadataFile(".");
     } else {
-//        MD5Shortener shortener;
-        TruncatingShortener shortener(5);
+        MD5Shortener shortener;
+//        TruncatingShortener shortener(5);
         md = DirectoryMetadata::fromFilesystem(".", shortener);
     }
 
