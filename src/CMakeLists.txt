@@ -1,6 +1,6 @@
 
 find_package( Boost 1.46 COMPONENTS system filesystem serialization )
-find_package( openssl )
+find_package( OpenSSL )
 
 link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
