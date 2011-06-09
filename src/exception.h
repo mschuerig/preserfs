@@ -29,6 +29,14 @@ throw_errno(const std::string& msg, const boost::filesystem::path& path, int err
 }
 
 void inline
+throw_errno(const char* msg, const boost::filesystem::path& path, int err = errno) {
+    throw boost::filesystem::filesystem_error(
+        msg, path,
+        boost::system::error_code(err, boost::system::system_category())
+    );
+}
+
+void inline
 throw_errno(int err = errno) {
     throw boost::system::system_error(
         boost::system::error_code(err, boost::system::system_category())
@@ -37,6 +45,14 @@ throw_errno(int err = errno) {
 
 void inline
 throw_errno(const std::string& msg, int err = errno) {
+    throw boost::system::system_error(
+        boost::system::error_code(err, boost::system::system_category()),
+	msg
+    );
+}
+
+void inline
+throw_errno(const char* msg, int err = errno) {
     throw boost::system::system_error(
         boost::system::error_code(err, boost::system::system_category()),
 	msg
