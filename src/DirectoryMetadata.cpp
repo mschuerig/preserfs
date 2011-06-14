@@ -7,6 +7,8 @@
 #include <fstream>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/exception/all.hpp>
+#include <boost/throw_exception.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/serialization/split_free.hpp>
 #include <boost/serialization/vector.hpp>
@@ -16,8 +18,6 @@
 using namespace std;
 namespace fs = boost::filesystem;
 namespace ser = boost::serialization;
-namespace sys = boost::system;
-namespace ex = exception;
 
 const string DirectoryMetadata::metadataFilename = ".preserfs";
 
@@ -42,7 +42,12 @@ DirectoryMetadata::fromFilesystem(
 
         struct stat st;
         if ( lstat(entryPath.c_str(), &st) < 0 ) {
-            ex::throw_errno("lstat", entryPath);
+            BOOST_THROW_EXCEPTION(
+                MetadataError()
+                << boost::errinfo_api_function("lstat")
+                << boost::errinfo_file_name(entryPath)
+                << boost::errinfo_errno(errno)
+            );
         }
 
         const string entryName( it->path().filename().string() );

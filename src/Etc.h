@@ -4,7 +4,11 @@
 
 #include <sys/types.h>
 #include <string>
+#include <exception>
+#include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
+
+struct EtcError : virtual std::exception, virtual boost::exception { };
 
 class Etc : public boost::noncopyable {
 public:

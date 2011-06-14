@@ -5,6 +5,8 @@
 #include "exception.h"
 #include <map>
 #include <utility>
+#include <boost/exception/all.hpp>
+#include <boost/throw_exception.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/scoped_ptr.hpp>
@@ -15,6 +17,9 @@ using namespace exception;
 #define foreach BOOST_FOREACH
 
 typedef map<string, DirectoryMetadata::Entry> EntryMap;
+
+struct PathTranslationError : virtual std::exception, virtual boost::exception { };
+
 
 string
 translate( const string& longPath, NameShortener& shortener) {
@@ -36,7 +41,11 @@ translate( const string& longPath, NameShortener& shortener) {
 	    shortener.reset();
 	    dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
 	} else {
-	    throw_errno(prefixPath, ENOTDIR);
+        BOOST_THROW_EXCEPTION(
+            PathTranslationError()
+            << boost::errinfo_file_name(prefixPath.string())
+            << boost::errinfo_errno(ENOTDIR)
+        );
 	}
 
 	EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
@@ -45,8 +54,12 @@ translate( const string& longPath, NameShortener& shortener) {
 	if ( ep != entryMap.end() ) {
 	    resultPath /= ep->second.shortName;
 	} else {
-	    throw_errno(part, ENOENT);
-	}
+        BOOST_THROW_EXCEPTION(
+            PathTranslationError()
+            << boost::errinfo_file_name(part.string())
+            << boost::errinfo_errno(ENOENT)
+        );
+    }
 
 	prefixPath /= part;
     }

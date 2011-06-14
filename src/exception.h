@@ -4,63 +4,16 @@
 
 #include <cerrno>
 #include <string>
-#include <boost/filesystem.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 
 namespace exception
 {
 
-void inline
-throw_errno(const boost::filesystem::path& path, int err = errno) {
-    throw boost::filesystem::filesystem_error(
-        "", path,
-        boost::system::error_code(err, boost::system::system_category())
-    );
-}
-
-void inline
-throw_errno(const std::string& msg, const boost::filesystem::path& path, int err = errno) {
-    throw boost::filesystem::filesystem_error(
-        msg, path,
-        boost::system::error_code(err, boost::system::system_category())
-    );
-}
-
-void inline
-throw_errno(const char* msg, const boost::filesystem::path& path, int err = errno) {
-    throw boost::filesystem::filesystem_error(
-        msg, path,
-        boost::system::error_code(err, boost::system::system_category())
-    );
-}
-
-void inline
-throw_errno(int err = errno) {
-    throw boost::system::system_error(
-        boost::system::error_code(err, boost::system::system_category())
-    );
-}
-
-void inline
-throw_errno(const std::string& msg, int err = errno) {
-    throw boost::system::system_error(
-        boost::system::error_code(err, boost::system::system_category()),
-	msg
-    );
-}
-
-void inline
-throw_errno(const char* msg, int err = errno) {
-    throw boost::system::system_error(
-        boost::system::error_code(err, boost::system::system_category()),
-	msg
-    );
-}
-
 class CatchAllBase : public boost::noncopyable {
 protected:
+    static int reportError(const boost::exception& ex);
     static int reportError(const boost::system::system_error& ex);
 };
 
@@ -77,7 +30,9 @@ public:
 	    r_ = fn_(a1_, a2_);
 	} catch(const boost::system::system_error& ex) {
 	    return reportError(ex);
-	}
+	} catch(const boost::exception& ex) {
+        return reportError(ex);
+    }
 	return 0;
     }
 

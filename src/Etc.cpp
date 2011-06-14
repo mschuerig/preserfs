@@ -5,12 +5,10 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <cerrno>
+#include <boost/throw_exception.hpp>
 #include <boost/shared_ptr.hpp>
-#include "exception.h"
 
 using namespace std;
-namespace sys = boost::system;
-namespace ex = exception;
 
 namespace {
 
@@ -68,7 +66,7 @@ safe_etc(typename E::func func, const typename E::arg_t arg) {
     typename E::struct_t* sentinel;
     int err = func(arg, &storage->s, storage->data, storage->datasize, &sentinel);
     if ( err != 0 || sentinel == NULL ) {
-        exception::throw_errno(err || ENOENT);
+        BOOST_THROW_EXCEPTION(EtcError() << boost::errinfo_errno(err || ENOENT));
     }
 
     return result;
@@ -81,27 +79,47 @@ safe_etc(typename E::func func, const typename E::arg_t arg) {
 const string
 Etc::lookupUsername(uid_t uid) const {
     typedef etc_traits<struct passwd, uid_t> passwd_from_uid;
-    const passwd_from_uid::ptr pwd( safe_etc<passwd_from_uid>(&getpwuid_r, uid) );
-    return string(pwd->pw_name);
+    try {
+        const passwd_from_uid::ptr pwd( safe_etc<passwd_from_uid>(&getpwuid_r, uid) );
+        return string(pwd->pw_name);
+    } catch (boost::exception& ex) {
+        ex << boost::errinfo_api_function("getpwuid_r");
+        throw;
+    }
 }
 
 const string
 Etc::lookupGroupname(gid_t gid) const {
     typedef etc_traits<struct group, gid_t> group_from_gid;
-    const group_from_gid::ptr gr( safe_etc<group_from_gid>(&getgrgid_r, gid) );
-    return string(gr->gr_name);
+    try {
+        const group_from_gid::ptr gr( safe_etc<group_from_gid>(&getgrgid_r, gid) );
+        return string(gr->gr_name);
+    } catch (boost::exception& ex) {
+        ex << boost::errinfo_api_function("getgrgid_r");
+        throw;
+    }
 }
 
 uid_t
 Etc::lookupUserId(const string& user) const {
     typedef etc_traits<struct passwd, const char*> passwd_from_name;
-    const passwd_from_name::ptr pwd( safe_etc<passwd_from_name>(&getpwnam_r, user.c_str()) );
-    return pwd->pw_uid;
+    try {
+        const passwd_from_name::ptr pwd( safe_etc<passwd_from_name>(&getpwnam_r, user.c_str()) );
+        return pwd->pw_uid;
+    } catch (boost::exception& ex) {
+        ex << boost::errinfo_api_function("getpwnam_r");
+        throw;
+    }
 }
 
 gid_t
 Etc::lookupGroupId(const string& group) const {
     typedef etc_traits<struct group, const char*> group_from_name;
-    const group_from_name::ptr gr( safe_etc<group_from_name>(&getgrnam_r, group.c_str()) );
-    return gr->gr_gid;
+    try {
+        const group_from_name::ptr gr( safe_etc<group_from_name>(&getgrnam_r, group.c_str()) );
+        return gr->gr_gid;
+    } catch (boost::exception& ex) {
+        ex << boost::errinfo_api_function("getgrnam_r");
+        throw;
+    }
 }

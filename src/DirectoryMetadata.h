@@ -13,6 +13,8 @@
 
 class Etc;
 
+struct MetadataError : virtual std::exception, virtual boost::exception { };
+
 class DirectoryMetadata : public boost::noncopyable {
 public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
