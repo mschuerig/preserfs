@@ -19,33 +19,82 @@
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/throw_exception.hpp>
-#include "algorithm.h"
 #include "DirectoryTree.h"
 
 using namespace std;
 namespace fs = boost::filesystem;
 #define foreach BOOST_FOREACH
 
-typedef map<string, DirectoryMetadata::Entry> EntryMap;
+typedef map<string, DirectoryEntry> EntryMap;
+
+struct DirectoryTree::Gardener {
+    virtual void growAt(DirectoryTree::Node& node, const fs::path& path) = 0;
+};
 
 
-DirectoryTree::DirectoryTree(const string& rootPath)
-    : rootPath_(rootPath) {
+namespace {
+
+void
+addChildrenToNode(
+    const DirectoryMetadata::Ptr dm,
+    DirectoryTree::Node& node,
+    std::string DirectoryEntry::*indexName
+) {
+    for ( DirectoryMetadata::const_iterator iter = dm->begin(), end = dm->end();  iter != end; ++iter ) {
+        DirectoryTree::Node child = { entry: *iter, children: DirectoryTree::Node::Children() };
+        node.children[(*iter).*indexName] = child;
+    }
 }
 
-DirectoryTree::DirectoryTree(
-    const string& rootPath,
-    DirectoryTree::NameShortenerPtr shortener
-) : rootPath_(rootPath), shortener_(shortener) {
-}
 
+class FilesystemGardner : public DirectoryTree::Gardener {
+public:
+    FilesystemGardner( DirectoryTree::NameShortenerPtr shortener )
+        : shortener_(shortener) {}
+
+    virtual void growAt( DirectoryTree::Node& node, const fs::path& path ) {
+        if ( !node.children.empty() ) {
+            return;
+        }
+        if ( fs::is_directory(path) ) {
+            shortener_->reset();
+            addChildrenToNode(
+                DirectoryMetadata::fromFilesystem(path.string(), *shortener_),
+                node,
+                &DirectoryEntry::longName
+            );
+        } else {
+            BOOST_THROW_EXCEPTION(
+                PathTranslationError()
+                << boost::errinfo_file_name(path.string())
+                << boost::errinfo_errno(ENOTDIR)
+            );
+        }
+    }
+
+private:
+    const DirectoryTree::NameShortenerPtr shortener_;
+};
+
+class MetadataGardner : public DirectoryTree::Gardener {
+
+};
+
+} // anonymous namespace
+
+
+
+DirectoryTree::DirectoryTree(const string& rootPath, Gardener* gardener)
+    : rootPath_(rootPath), gardener_(gardener) {
+}
 
 DirectoryTree::Ptr
 DirectoryTree::fromFilesystem(
     const string& rootPath,
     DirectoryTree::NameShortenerPtr shortener
 ) {
-    return boost::make_shared<DirectoryTree>(rootPath, shortener);
+    Gardener* gardener = new FilesystemGardner(shortener);
+    return DirectoryTree::Ptr(new DirectoryTree(rootPath, gardener));
 }
 
 
@@ -54,16 +103,20 @@ DirectoryTree::fromFilesystem(
 //     const string& rootPath,
 //     const string& filename
 // ) {
-// 
+//
 // }
 
 
 DirectoryTree::lookupResult
-DirectoryTree::lookup( const string& longPath ) const {
+DirectoryTree::lookup(
+    const string& longPath,
+    std::string DirectoryEntry::*resultName
+) const {
     const fs::path path(longPath);
 
     fs::path prefixPath;
 
+    //### FIXME absolute paths only, but interpreted relative to rootPath_
     if ( path.is_absolute() ) {
         prefixPath = "/";
     } else {
@@ -71,35 +124,26 @@ DirectoryTree::lookup( const string& longPath ) const {
     }
 
     fs::path resultPath;
-    DirectoryMetadata::Ptr dm;
-    EntryMap::const_iterator ep;
+    Node& node = root_;
+    Node::Children::const_iterator found;
 
-    foreach( fs::path part, path ) {
-        if ( fs::is_directory(prefixPath) ) {
-            shortener_->reset();
-            dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), *shortener_);
+    foreach( const fs::path& pathElement, path ) {
+        gardener_->growAt( node, prefixPath );
+
+        found = node.children.find(pathElement.string());
+        if ( found != node.children.end() ) {
+            node = found->second;
+            resultPath /= node.entry.*resultName;
         } else {
             BOOST_THROW_EXCEPTION(
                 PathTranslationError()
-                << boost::errinfo_file_name(prefixPath.string())
-                << boost::errinfo_errno(ENOTDIR)
-            );
-        }
-
-        EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
-
-        ep = entryMap.find(part.string());
-        if ( ep != entryMap.end() ) {
-            resultPath /= ep->second.shortName;
-        } else {
-            BOOST_THROW_EXCEPTION(
-                PathTranslationError()
-                << boost::errinfo_file_name(part.string())
+                << boost::errinfo_file_name( pathElement.string() )
                 << boost::errinfo_errno(ENOENT)
             );
         }
 
-        prefixPath /= part;
+        prefixPath /= pathElement;
     }
-    return make_pair(resultPath.string(), ep->second);
+
+    return make_pair(resultPath.string(), found->second.entry);
 }

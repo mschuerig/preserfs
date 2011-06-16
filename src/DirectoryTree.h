@@ -24,6 +24,7 @@
 #include <boost/exception/all.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 #include "DirectoryMetadata.h"
 #include "NameShortener.h"
@@ -34,11 +35,15 @@ class DirectoryTree : public boost::noncopyable {
 public:
     typedef boost::shared_ptr<DirectoryTree> Ptr;
     typedef boost::shared_ptr<NameShortener> NameShortenerPtr;
-    typedef std::pair<std::string, DirectoryMetadata::Entry> lookupResult;
+    typedef std::pair<std::string, DirectoryEntry> lookupResult;
 
-    class Node {
+    class Gardener;
+
+    struct Node {
+        typedef std::map<std::string, Node> Children;
+        DirectoryEntry  entry;
+        Children        children;
     };
-    typedef boost::shared_ptr<Node> NodePtr;
 
     static Ptr fromFilesystem(
         const std::string& rootPath,
@@ -50,17 +55,17 @@ public:
         const std::string& filename
     );
 
-    lookupResult lookup(const std::string& path) const;
+    lookupResult lookup(
+        const std::string& path,
+        std::string DirectoryEntry::*resultName
+    ) const;
 
 private:
-    DirectoryTree(const std::string& rootPath);
-    DirectoryTree(const std::string& rootPath, NameShortenerPtr shortener);
-    friend Ptr boost::make_shared<DirectoryTree, std::string>(const std::string&);
-    friend Ptr boost::make_shared<DirectoryTree, std::string, NameShortenerPtr>(const std::string&, const NameShortenerPtr&);
+    DirectoryTree(const std::string& rootPath, Gardener* gardener);
 
     std::string rootPath_;
-    mutable NameShortenerPtr shortener_;
-    mutable NodePtr root_;
+    mutable Node root_;
+    const boost::scoped_ptr<DirectoryTree::Gardener> gardener_;
 };
 
 #endif // DIRECTORYTREE_H

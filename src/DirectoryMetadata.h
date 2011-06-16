@@ -18,14 +18,15 @@
 #ifndef DIRECTORYMETADATA_H
 #define DIRECTORYMETADATA_H
 
-#include "NameShortener.h"
-
 #include <ostream>
 #include <string>
 #include <vector>
 #include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
+
+#include "DirectoryEntry.h"
+#include "NameShortener.h"
 
 class Etc;
 
@@ -36,16 +37,8 @@ public:
     typedef boost::shared_ptr<DirectoryMetadata> Ptr;
     typedef boost::shared_ptr<Etc> EtcPtr;
 
-    struct Entry {
-        std::string longName;
-        std::string shortName;
-        uid_t       uid;
-        gid_t       gid;
-        mode_t      mode;
-        time_t      mtime;
-    };
-    typedef Entry value_type;
-    typedef std::vector<Entry>::const_iterator const_iterator; // TODO use a dequeue?
+    typedef DirectoryEntry value_type;
+    typedef std::vector<DirectoryEntry>::const_iterator const_iterator; // TODO use a dequeue?
 
     static const std::string metadataFilename;
 
@@ -88,7 +81,7 @@ private:
     DirectoryMetadata(const EtcPtr etc);
     friend Ptr boost::make_shared<DirectoryMetadata, EtcPtr>(const EtcPtr&);
 
-    std::vector<Entry> entries_;
+    std::vector<DirectoryEntry> entries_;
     const boost::shared_ptr<Etc> etc_;
 };
 

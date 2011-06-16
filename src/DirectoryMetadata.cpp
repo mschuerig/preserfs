@@ -17,7 +17,6 @@
 
 #include "DirectoryMetadata.h"
 
-#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
@@ -51,7 +50,7 @@ DirectoryMetadata::fromFilesystem(
 ) {
     fs::path path(directoryPath);
     Ptr dm(boost::make_shared<DirectoryMetadata>(etc));
-    vector<Entry>& entries(dm->entries_);
+    vector<DirectoryEntry>& entries(dm->entries_);
     
     for ( fs::directory_iterator it(path), end; it != end; ++it ) {
         const string entryPath( it->path().string() );
@@ -67,8 +66,8 @@ DirectoryMetadata::fromFilesystem(
         }
 
         const string entryName( it->path().filename().string() );
-        
-        Entry entry = {
+
+        DirectoryEntry entry = {
             longName    : entryName,
             shortName   : shortener(entryName),
             uid         : st.st_uid,
@@ -153,7 +152,7 @@ namespace serialization {
 template<class Archive>
 inline void serialize(
     Archive& ar,
-    DirectoryMetadata::Entry& e,
+    DirectoryEntry& e,
     const unsigned int file_version
 ) {
     boost::serialization::split_free(ar, e, file_version);
@@ -163,7 +162,7 @@ inline void serialize(
 template<class Archive>
 void save(
     Archive& ar,
-    const DirectoryMetadata::Entry& e,
+    const DirectoryEntry& e,
     const unsigned int /*version*/
 ) {
     Etc etc; // TODO how to get hold of the instance in DirectoryMetadata from here?
@@ -180,7 +179,7 @@ void save(
 template<class Archive>
 void load(
     Archive& ar,
-    DirectoryMetadata::Entry& e,
+    DirectoryEntry& e,
     const unsigned int /*version*/
 ) {
     Etc etc; // TODO how to get hold of the instance in DirectoryMetadata from here?

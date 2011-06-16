@@ -27,7 +27,6 @@
 #include "DirectoryMetadata.h"
 #include "DirectoryTree.h"
 #include "TruncatingShortener.h"
-#include "algorithm.h"
 #include "exception.h"
 
 
@@ -36,7 +35,7 @@ namespace fs = boost::filesystem;
 using namespace exception;
 #define foreach BOOST_FOREACH
 
-typedef map<string, DirectoryMetadata::Entry> EntryMap;
+typedef map<string, DirectoryEntry> EntryMap;
 typedef boost::function<DirectoryTree::lookupResult (const string&)> LookupFunc;
 typedef CatchAll<DirectoryTree::lookupResult, const string&> LookupCatchAll;
 
@@ -47,7 +46,7 @@ main( int argc, char* argv[] )
     boost::shared_ptr<NameShortener> shortener( boost::make_shared<TruncatingShortener>(5) );
     DirectoryTree::Ptr tree( DirectoryTree::fromFilesystem(".", shortener) );
 
-    LookupFunc translate = boost::bind(&DirectoryTree::lookup, tree, _1);
+    LookupFunc translate = boost::bind(&DirectoryTree::lookup, tree, _1, &DirectoryEntry::shortName);
 
     for ( int i = 1; i < argc; ++i ) {
         const string longPath(argv[i]);
@@ -62,4 +61,4 @@ main( int argc, char* argv[] )
 
     return 0;
 }
- 
+
