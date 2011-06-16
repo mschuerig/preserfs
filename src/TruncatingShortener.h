@@ -31,7 +31,7 @@ private:
     const size_t maxNameLength_;
 
     virtual std::string shorten(const std::string& longName);
-    virtual void reset();
+    virtual void doReset();
 };
 
 #endif // TRUNCATINGSHORTENER_H

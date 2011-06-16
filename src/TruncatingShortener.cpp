@@ -53,6 +53,6 @@ TruncatingShortener::shorten(const std::string& longName) {
 }
  
 void
-TruncatingShortener::reset() {
+TruncatingShortener::doReset() {
     shortNames_.clear();
 }

@@ -23,11 +23,11 @@
 class NameShortener {
 public:
     std::string operator()(const std::string& longName) {
-	return shorten(longName);
+        return shorten(longName);
     }
 
     void reset() {
-	doReset();
+        doReset();
     }
 
     virtual ~NameShortener() {};
