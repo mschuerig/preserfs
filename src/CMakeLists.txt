@@ -33,6 +33,7 @@ target_link_libraries (
 add_executable(
     transpath
     transpath.cpp
+    DirectoryTree.cpp
     DirectoryMetadata.cpp
     Etc.cpp
     ${Shorteners}

@@ -46,9 +46,9 @@ public:
     };
     typedef Entry value_type;
     typedef std::vector<Entry>::const_iterator const_iterator; // TODO use a dequeue?
-   
+
     static const std::string metadataFilename;
-    
+
     static Ptr fromFilesystem(
         const std::string& directoryPath,
         NameShortener& shortener,
@@ -87,7 +87,7 @@ public:
 private:
     DirectoryMetadata(const EtcPtr etc);
     friend Ptr boost::make_shared<DirectoryMetadata, EtcPtr>(const EtcPtr&);
-    
+
     std::vector<Entry> entries_;
     const boost::shared_ptr<Etc> etc_;
 };

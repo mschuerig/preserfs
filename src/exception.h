@@ -21,6 +21,7 @@
 #include <cerrno>
 #include <string>
 #include <boost/exception/all.hpp>
+#include <boost/function.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/system/system_error.hpp>
 
@@ -33,34 +34,34 @@ protected:
     static int reportError(const boost::system::system_error& ex);
 };
 
-template<typename R, typename A1, typename A2>
+
+template<typename R, typename A1>
 class CatchAll : protected CatchAllBase {
 public:
-    typedef R (*func_t)(A1, A2);
+    typedef boost::function<R (A1)> func_t;
 
-    CatchAll(func_t fn, A1 a1, A2 a2)
-	: fn_(fn), a1_(a1), a2_(a2) {}
+    CatchAll(func_t fn, A1 a1)
+        : fn_(fn), a1_(a1) {}
 
-    int call() {
-	try {
-	    r_ = fn_(a1_, a2_);
-	} catch(const boost::system::system_error& ex) {
-	    return reportError(ex);
-	} catch(const boost::exception& ex) {
-        return reportError(ex);
-    }
-	return 0;
+    int operator()() {
+        try {
+            r_ = fn_(a1_);
+        } catch(const boost::system::system_error& ex) {
+            return reportError(ex);
+        } catch(const boost::exception& ex) {
+            return reportError(ex);
+        }
+        return 0;
     }
 
     R result() {
-	return r_;
+        return r_;
     }
 
 private:
     func_t fn_;
     R r_;
     A1 a1_;
-    A2 a2_;
 };
 
 } // namespace exception

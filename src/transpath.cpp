@@ -15,17 +15,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "DirectoryMetadata.h"
-#include "TruncatingShortener.h"
-#include "algorithm.h"
-#include "exception.h"
 #include <map>
 #include <utility>
+#include <boost/bind.hpp>
 #include <boost/exception/all.hpp>
+#include <boost/function.hpp>
 #include <boost/throw_exception.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
 #include <boost/scoped_ptr.hpp>
+#include "DirectoryMetadata.h"
+#include "DirectoryTree.h"
+#include "TruncatingShortener.h"
+#include "algorithm.h"
+#include "exception.h"
+
 
 using namespace std;
 namespace fs = boost::filesystem;
@@ -33,71 +37,27 @@ using namespace exception;
 #define foreach BOOST_FOREACH
 
 typedef map<string, DirectoryMetadata::Entry> EntryMap;
-
-struct PathTranslationError : virtual std::exception, virtual boost::exception { };
-
-
-string
-translate( const string& longPath, NameShortener& shortener) {
-    const fs::path path(longPath);
-
-    fs::path prefixPath;
-
-    if ( path.is_absolute() ) {
-	prefixPath = "/";
-    } else {
-	prefixPath = ".";
-    }
-
-    fs::path resultPath;
-    DirectoryMetadata::Ptr dm;
-
-    foreach( fs::path part, path ) {
-        if ( fs::is_directory(prefixPath) ) {
-            shortener.reset();
-            dm = DirectoryMetadata::fromFilesystem(prefixPath.string(), shortener);
-        } else {
-            BOOST_THROW_EXCEPTION(
-                PathTranslationError()
-                << boost::errinfo_file_name(prefixPath.string())
-                << boost::errinfo_errno(ENOTDIR)
-            );
-        }
-
-        EntryMap entryMap = algorithm::index_by(*dm, &DirectoryMetadata::Entry::longName);
-
-        EntryMap::const_iterator ep( entryMap.find(part.string()) );
-        if ( ep != entryMap.end() ) {
-            resultPath /= ep->second.shortName;
-        } else {
-            BOOST_THROW_EXCEPTION(
-                PathTranslationError()
-                << boost::errinfo_file_name(part.string())
-                << boost::errinfo_errno(ENOENT)
-            );
-        }
-
-        prefixPath /= part;
-    }
-    return resultPath.string();
-}
+typedef boost::function<DirectoryTree::lookupResult (const string&)> LookupFunc;
+typedef CatchAll<DirectoryTree::lookupResult, const string&> LookupCatchAll;
 
 
 int
 main( int argc, char* argv[] )
 {
-    TruncatingShortener shortener(5);
-    
-    for ( int i = 1; i < argc; ++i ) {
-	const string longPath(argv[i]);
-	
-	CatchAll<string, const string&, NameShortener&> catcher(
-	    &translate, longPath, shortener);
-	if ( int err = catcher.call() ) {
-	    return err;
-	}
+    boost::shared_ptr<NameShortener> shortener( boost::make_shared<TruncatingShortener>(5) );
+    DirectoryTree::Ptr tree( DirectoryTree::fromFilesystem(".", shortener) );
 
-	cout << longPath << " -> " << catcher.result() << endl;
+    LookupFunc translate = boost::bind(&DirectoryTree::lookup, tree, _1);
+
+    for ( int i = 1; i < argc; ++i ) {
+        const string longPath(argv[i]);
+
+        LookupCatchAll catcher(translate, longPath);
+        if ( int err = catcher() ) {
+            return err;
+        }
+
+        cout << longPath << " -> " << catcher.result().first << endl;
     }
 
     return 0;
